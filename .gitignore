@@ -68,10 +68,13 @@ coverage.xml
 # Uncomment above if your model is too large (>100MB)
 
 # Data directories (usually too large for Git)
-data/dicom_inputs/*
-!data/dicom_inputs/.gitkeep
-data/vector_db/*
-!data/vector_db/.gitkeep
+# Ignore all contents in data folder
+data/*
+!data/.gitkeep
+# But keep the data folder structure visible
+!data/*/
+# Ignore everything inside subfolders
+data/*/*
 
 # Logs
 *.log
@@ -82,6 +85,10 @@ logs/
 *.temp
 temp/
 tmp/
+
+# Test data files
+test_patient*.zip
+*_test_sample*.zip
 
 # OS specific
 Thumbs.db

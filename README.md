@@ -42,6 +42,48 @@ NeuroScan-3D-RAG is an advanced medical imaging analysis system that combines 3D
 4. Initialize vector database in `data/vector_db/`
 5. Run `streamlit run src/app.py` or start the React frontend
 
+---
+
+## 🧠 Tumor Vision API (Brain Tumor Classification)
+
+### Quick Start
+
+**Tumor Vision API** is a standalone FastAPI + Streamlit application for brain tumor classification and segmentation using a Multi-Task U-Net model.
+
+#### 1. Start the API Server
+```bash
+source venv_api/Scripts/activate
+uvicorn tumor_vision_api.api_logic:app --reload --port 8000
+```
+
+#### 2. Start the Streamlit UI
+```bash
+streamlit run streamlit_app.py
+```
+
+#### 3. Use the Application
+1. Open http://localhost:8501
+2. Upload a ZIP file containing 4 NIfTI files (flair, t1, t1ce, t2)
+3. Click "Predict Tumor"
+4. View classification results (HGG/LGG) and segmentation visualization
+
+**See [STREAMLIT_SETUP.md](STREAMLIT_SETUP.md) for detailed instructions.**
+
+### Features
+- ✅ Multi-Task U-Net for simultaneous classification and segmentation
+- ✅ Interactive Streamlit UI with drag-and-drop upload
+- ✅ Real-time prediction with progress notifications
+- ✅ Interactive probability charts
+- ✅ 4-panel tumor segmentation visualization
+- ✅ RESTful API with FastAPI
+- ✅ Automatic model loading on startup
+
+### API Endpoints
+- `POST /predict_tumor/` - Predict tumor classification and segmentation
+- `POST /evaluate_tumor/` - Evaluate with ground truth
+- `GET /health` - Health check
+- `GET /docs` - Interactive API documentation
+
 ### Security Notes
 
 - All medical data should be handled according to HIPAA/GDPR regulations

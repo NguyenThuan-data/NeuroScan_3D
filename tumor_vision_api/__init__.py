@@ -1,3 +1,5 @@
+"""
+Tumor Vision API Package
 
 This package contains the FastAPI application and model utilities
 for brain tumor segmentation and classification.
