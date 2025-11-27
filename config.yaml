@@ -1,0 +1,60 @@
+# NeuroScan-3D-RAG Configuration File
+
+# Data Paths
+paths:
+  dicom_input: "data/dicom_inputs"
+  hospital_knowledge: "data/hospital_knowledge"
+  vector_db: "data/vector_db"
+  nnunet_weights: "models/nnunet_weights"
+  medical_clip: "models/medical_clip"
+
+# Segmentation Thresholds
+segmentation:
+  confidence_threshold: 0.85
+  min_volume_mm3: 100  # Minimum lesion volume in mm³
+  max_volume_mm3: 50000  # Maximum lesion volume in mm³
+  tta_enabled: true
+  tta_num_augmentations: 8
+
+# RAG Engine Settings
+rag:
+  vector_db_type: "milvus"  # Options: "milvus", "pinecone"
+  embedding_model: "medical_clip"
+  top_k_retrieval: 5
+  similarity_threshold: 0.7
+  chunk_size: 512
+  chunk_overlap: 50
+
+# LLM Settings
+llm:
+  provider: "ollama"  # Options: "ollama", "local_llama3"
+  model_name: "llama3:8b"
+  temperature: 0.3
+  max_tokens: 2048
+  system_prompt: "You are a medical imaging expert assistant."
+
+# Security Settings
+security:
+  enable_encryption: true
+  data_retention_days: 30
+  require_authentication: true
+  audit_logging: true
+  allowed_file_types: [".dcm", ".dicom"]
+  max_file_size_mb: 500
+
+# Processing Settings
+processing:
+  batch_size: 1
+  num_workers: 4
+  device: "cuda"  # Options: "cuda", "cpu"
+  mixed_precision: true
+  cache_results: true
+
+# Frontend Settings
+frontend:
+  framework: "streamlit"  # Options: "streamlit", "react"
+  port: 8501
+  host: "localhost"
+  enable_download: true
+  max_upload_size_mb: 100
+
