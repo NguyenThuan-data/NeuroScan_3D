@@ -97,3 +97,11 @@ test_patient*.zip
 Thumbs.db
 desktop.ini
 
+# Deployment folders
+hf_deployment/
+render_deployment/
+*_deployment/
+
+# HF Space clone (separate repository)
+neuroscan-api/
+

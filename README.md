@@ -46,9 +46,21 @@ NeuroScan-3D-RAG is an advanced medical imaging analysis system that combines 3D
 
 ## 🧠 Tumor Vision API (Brain Tumor Classification)
 
-### Quick Start
+**Tumor Vision API** is a FastAPI + Streamlit application for brain tumor classification and segmentation using a Multi-Task U-Net model.
 
-**Tumor Vision API** is a standalone FastAPI + Streamlit application for brain tumor classification and segmentation using a Multi-Task U-Net model.
+### 🌐 Live Deployment
+
+**Production Application:**
+- **Frontend UI:** Streamlit Cloud
+- **Backend API:** Hugging Face Spaces (16GB RAM, free tier)
+- **Architecture:** Distributed system with HTTPS communication
+
+**Access the App:**
+- Visit the deployed Streamlit application
+- Upload a ZIP file containing 4 NIfTI files (flair, t1, t1ce, t2)
+- Get instant classification (HGG/LGG) and segmentation results
+
+### 💻 Local Development
 
 #### 1. Start the API Server
 ```bash
@@ -67,22 +79,34 @@ streamlit run streamlit_app.py
 3. Click "Predict Tumor"
 4. View classification results (HGG/LGG) and segmentation visualization
 
-**See [STREAMLIT_SETUP.md](STREAMLIT_SETUP.md) for detailed instructions.**
-
-### Features
+### ✨ Features
 - ✅ Multi-Task U-Net for simultaneous classification and segmentation
 - ✅ Interactive Streamlit UI with drag-and-drop upload
 - ✅ Real-time prediction with progress notifications
-- ✅ Interactive probability charts
+- ✅ Interactive probability charts (Plotly)
 - ✅ 4-panel tumor segmentation visualization
 - ✅ RESTful API with FastAPI
 - ✅ Automatic model loading on startup
+- ✅ Cloud deployment with Hugging Face Spaces (16GB RAM)
+- ✅ CORS-enabled for distributed architecture
 
-### API Endpoints
-- `POST /predict_tumor/` - Predict tumor classification and segmentation
-- `POST /evaluate_tumor/` - Evaluate with ground truth
-- `GET /health` - Health check
-- `GET /docs` - Interactive API documentation
+### 🚀 Deployment Architecture
+
+```
+┌─────────────────────┐         HTTPS          ┌──────────────────────┐
+│  Streamlit Cloud    │ ───────────────────────> │  Hugging Face Spaces │
+│  (Frontend UI)      │    POST /predict_tumor/ │  (FastAPI + Model)   │
+│  - File Upload      │ <─────────────────────── │  - 16GB RAM          │
+│  - Visualization    │         JSON Response    │  - Docker Container  │
+└─────────────────────┘                          └──────────────────────┘
+```
+
+### 🔌 API Endpoints
+- `POST /predict_tumor/` - Upload ZIP with 4 NIfTI files, get classification & segmentation
+- `POST /evaluate_tumor/` - Evaluate predictions against ground truth
+- `GET /health` - Health check (model status, device info)
+- `GET /` - API information
+- `GET /docs` - Interactive Swagger documentation
 
 ### Security Notes
 
