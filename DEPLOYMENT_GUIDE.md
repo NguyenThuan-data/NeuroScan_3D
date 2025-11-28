@@ -61,14 +61,27 @@ git push origin feature/tumor_api
 
 ## Part 2: Deploy FastAPI Backend to Render
 
-### Step 1: Create a New Web Service
+### Step 1: Choose Deployment Method
+
+**Option A: Blueprint (Recommended - Automatic)**
+
+1. Go to https://dashboard.render.com/
+2. Click **"New +"** → **"Blueprint"**
+3. Connect your GitHub account and select **NeuroScan** repository
+4. Render will auto-detect `render.yaml` and configure everything
+5. Click **"Apply"** and skip to Step 3
+
+**Option B: Manual Web Service (More Control)**
 
 1. Go to https://dashboard.render.com/
 2. Click **"New +"** → **"Web Service"**
 3. Connect your GitHub account if you haven't already
 4. Select the **NeuroScan** repository
+5. Continue to Step 2
 
-### Step 2: Configure the Web Service
+### Step 2: Configure the Web Service (Manual Method Only)
+
+**IMPORTANT:** Make sure to select **Docker** as the environment!
 
 Fill in the following settings:
 
@@ -78,8 +91,10 @@ Fill in the following settings:
 | **Region** | Choose closest to you |
 | **Branch** | `feature/tumor_api` (or `main`) |
 | **Root Directory** | Leave blank (root) |
-| **Runtime** | `Docker` |
+| **Environment** | **Docker** ⚠️ CRITICAL! |
 | **Dockerfile Path** | `./Dockerfile` |
+| **Docker Context** | `.` |
+| **Docker Command** | Leave blank |
 | **Plan** | **Free** |
 
 ### Step 3: Environment Variables
