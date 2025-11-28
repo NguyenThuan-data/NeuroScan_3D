@@ -55,6 +55,9 @@ coverage.xml
 .env
 .env.local
 
+# Streamlit secrets (contains API keys and sensitive config)
+.streamlit/secrets.toml
+
 # IDEs
 .vscode/
 .idea/

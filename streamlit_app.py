@@ -27,7 +27,9 @@ st.set_page_config(
 )
 
 # API Configuration
-API_BASE_URL = "http://localhost:8000"
+# Use environment variable for API URL (for production deployment)
+# Falls back to localhost for local development
+API_BASE_URL = os.getenv("API_BASE_URL", "http://localhost:8000")
 PREDICT_ENDPOINT = f"{API_BASE_URL}/predict_tumor/"
 
 # Custom CSS for better styling
@@ -154,11 +156,22 @@ def call_prediction_api(folder_path, model_name="default"):
         response.raise_for_status()
         return response.json()
     except requests.exceptions.ConnectionError:
-        st.error("❌ Cannot connect to API server. Please ensure the FastAPI server is running.")
-        st.code("uvicorn tumor_vision_api.api_logic:app --reload", language="bash")
+        st.error("❌ Cannot connect to API server.")
+        st.warning("""
+        **Possible reasons:**
+        - API server is starting up (cold start on free tier ~30-60 seconds)
+        - API server is not running
+        - Incorrect API URL configured
+        
+        **If running locally:** Start the API with:
+        ```bash
+        uvicorn tumor_vision_api.api_logic:app --reload
+        ```
+        """)
         return None
     except requests.exceptions.Timeout:
         st.error("❌ Request timeout. The prediction is taking too long.")
+        st.info("The model inference can take 2-5 minutes depending on server resources. Please wait...")
         return None
     except requests.exceptions.RequestException as e:
         st.error(f"❌ API request failed: {str(e)}")

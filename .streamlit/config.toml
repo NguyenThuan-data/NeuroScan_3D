@@ -1,0 +1,24 @@
+[server]
+# Maximum upload size in MB (500 MB for brain MRI ZIP files)
+maxUploadSize = 500
+
+# Enable CORS for API communication
+enableCORS = true
+
+# Enable XSRF protection
+enableXsrfProtection = true
+
+# Prevent caching issues
+enableStaticServing = true
+
+[browser]
+# Automatically open browser on local dev
+gatherUsageStats = false
+
+[theme]
+# Optional: customize theme colors
+primaryColor = "#FF6B6B"
+backgroundColor = "#FFFFFF"
+secondaryBackgroundColor = "#F0F2F6"
+textColor = "#262730"
+

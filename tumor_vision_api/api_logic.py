@@ -7,6 +7,7 @@ import sys
 import os
 import torch
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 from pydantic import BaseModel
 
@@ -121,6 +122,21 @@ async def lifespan(app: FastAPI):
     print("API SHUTDOWN: Models unloaded.")
 
 app = FastAPI(lifespan=lifespan)
+
+# ============================================================
+# CORS CONFIGURATION - Allow Streamlit Cloud to make requests
+# ============================================================
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "https://*.streamlit.app",  # Streamlit Cloud apps
+        "http://localhost:8501",    # Local Streamlit development
+        "http://localhost:3000",    # Alternative local port
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],  # Allow all HTTP methods
+    allow_headers=["*"],  # Allow all headers
+)
 
 # ============================================================
 # REQUEST MODELS
