@@ -1,0 +1,45 @@
+# Git
+.git
+.gitignore
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Virtual environments
+venv/
+venv_api/
+env/
+ENV/
+.venv/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Data files
+data/*
+
+# Tests
+test/
+
+# Documentation
+*.md
+!README.md
+
+# Streamlit config (not needed in backend)
+.streamlit/
+
+# Frontend requirements (not needed in backend)
+requirements_streamlit.txt
+
+# Temporary files
+*.tmp
+*.temp
+temp/
+tmp/
+
