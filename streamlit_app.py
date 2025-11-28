@@ -135,26 +135,31 @@ def extract_zip_to_temp(uploaded_file):
     return extract_dir
 
 
-def call_prediction_api(folder_path, model_name="default"):
+def call_prediction_api(uploaded_file, model_name="default"):
     """
-    Call the FastAPI prediction endpoint.
+    Call the FastAPI prediction endpoint with ZIP file upload.
     
     Args:
-        folder_path: Path to folder containing NIfTI files
+        uploaded_file: Streamlit UploadedFile object (ZIP file)
         model_name: Model to use for prediction
     
     Returns:
         dict: API response
     """
-    payload = {
-        "patient_folder_path": folder_path,
-        "model_name": model_name
-    }
-    
     try:
-        response = requests.post(PREDICT_ENDPOINT, json=payload, timeout=300)
+        # Prepare files and data for multipart form upload
+        files = {
+            'zip_file': (uploaded_file.name, uploaded_file.getvalue(), 'application/zip')
+        }
+        data = {
+            'model_name': model_name
+        }
+        
+        # Send POST request with file upload
+        response = requests.post(PREDICT_ENDPOINT, files=files, data=data, timeout=300)
         response.raise_for_status()
         return response.json()
+        
     except requests.exceptions.ConnectionError:
         st.error("❌ Cannot connect to API server.")
         st.warning("""
@@ -285,54 +290,54 @@ def main():
     )
     
     # Initialize session state
-    if 'extracted_path' not in st.session_state:
-        st.session_state.extracted_path = None
+    if 'uploaded_zip' not in st.session_state:
+        st.session_state.uploaded_zip = None
     if 'prediction_result' not in st.session_state:
         st.session_state.prediction_result = None
     
     # Process uploaded file
     if uploaded_file is not None:
-        with st.spinner("📦 Extracting ZIP file..."):
+        with st.spinner("📦 Validating ZIP file..."):
             try:
-                # Extract ZIP
-                extracted_path = extract_zip_to_temp(uploaded_file)
-                
-                # Get list of files
+                # Validate ZIP file (quick check without full extraction)
+                zip_bytes = uploaded_file.getvalue()
                 files_in_zip = []
-                for root, dirs, files in os.walk(extracted_path):
-                    files_in_zip.extend(files)
+                
+                # Read ZIP file contents to validate
+                with zipfile.ZipFile(io.BytesIO(zip_bytes), 'r') as zip_ref:
+                    files_in_zip = zip_ref.namelist()
                 
                 # Validate files
                 is_valid, found_modalities, missing_modalities = validate_nifti_files(files_in_zip)
                 
                 if is_valid:
-                    st.session_state.extracted_path = extracted_path
-                    st.success(f"✅ Files uploaded successfully!")
+                    st.session_state.uploaded_zip = uploaded_file
+                    st.success(f"✅ ZIP file validated successfully!")
                     st.info(f"📋 Found modalities: **{', '.join(sorted(found_modalities))}**")
                 else:
                     st.error(f"❌ Missing required modalities: **{', '.join(missing_modalities)}**")
                     st.warning("Please ensure your ZIP file contains all 4 modalities: flair, t1, t1ce, t2")
-                    st.session_state.extracted_path = None
+                    st.session_state.uploaded_zip = None
                     
             except zipfile.BadZipFile:
                 st.error("❌ Invalid ZIP file. Please upload a valid ZIP archive.")
-                st.session_state.extracted_path = None
+                st.session_state.uploaded_zip = None
             except Exception as e:
                 st.error(f"❌ Error processing ZIP file: {str(e)}")
-                st.session_state.extracted_path = None
+                st.session_state.uploaded_zip = None
     
     # Predict button
     st.markdown("---")
     predict_button = st.button(
         "🔍 Predict Tumor",
         type="primary",
-        disabled=(st.session_state.extracted_path is None),
+        disabled=(st.session_state.uploaded_zip is None),
         use_container_width=True
     )
     
-    if predict_button and st.session_state.extracted_path:
+    if predict_button and st.session_state.uploaded_zip:
         with st.spinner("🔄 Running prediction... This may take a few moments."):
-            result = call_prediction_api(st.session_state.extracted_path)
+            result = call_prediction_api(st.session_state.uploaded_zip)
             
             if result and result.get("status") == "success":
                 st.session_state.prediction_result = result
@@ -393,7 +398,7 @@ def main():
         with col1:
             if st.button("🔄 Analyze Another Case", use_container_width=True):
                 st.session_state.prediction_result = None
-                st.session_state.extracted_path = None
+                st.session_state.uploaded_zip = None
                 st.rerun()
 
 

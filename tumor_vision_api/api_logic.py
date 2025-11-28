@@ -6,7 +6,10 @@ import numpy as np
 import sys
 import os
 import torch
-from fastapi import FastAPI, HTTPException
+import tempfile
+import zipfile
+import shutil
+from fastapi import FastAPI, HTTPException, File, UploadFile, Form
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 from pydantic import BaseModel
@@ -152,18 +155,26 @@ class LoadModelRequest(BaseModel):
 
 
 # ============================================================
-# PREDICTION ENDPOINT
+# PREDICTION ENDPOINT (FILE UPLOAD VERSION)
 # ============================================================
 @app.post("/predict_tumor/")
-async def predict_tumor_analysis(request: PredictionRequest):
+async def predict_tumor_analysis(
+    zip_file: UploadFile = File(..., description="ZIP file containing 4 NIfTI modalities"),
+    model_name: str = Form(default="default")
+):
+    """
+    Predict brain tumor classification and segmentation from uploaded ZIP file.
+    
+    Args:
+        zip_file: ZIP file containing flair, t1, t1ce, t2 NIfTI files
+        model_name: Model to use for prediction (default: "default")
+    
+    Returns:
+        JSON with diagnosis, probabilities, and segmentation visualization
+    """
+    temp_dir = None
     try:
-        patient_path = request.patient_folder_path
-        model_name = request.model_name
-        
-        # Convert to absolute path if relative
-        if not os.path.isabs(patient_path):
-            patient_path = os.path.abspath(patient_path)
-            print(f"Converted relative path to absolute: {patient_path}")
+        print(f"Received ZIP file: {zip_file.filename}")
         
         # Check if requested model exists
         if model_name not in app_state["models"]:
@@ -172,12 +183,46 @@ async def predict_tumor_analysis(request: PredictionRequest):
                 detail=f"Model '{model_name}' not found. Available models: {list(app_state['models'].keys())}"
             )
         
-        # Validate path exists
-        if not os.path.exists(patient_path):
+        # Create temporary directory
+        temp_dir = tempfile.mkdtemp()
+        print(f"Created temp directory: {temp_dir}")
+        
+        # Save uploaded ZIP file
+        zip_path = os.path.join(temp_dir, "upload.zip")
+        with open(zip_path, "wb") as f:
+            content = await zip_file.read()
+            f.write(content)
+        print(f"Saved ZIP file ({len(content)} bytes)")
+        
+        # Extract ZIP contents
+        extract_dir = os.path.join(temp_dir, "extracted")
+        os.makedirs(extract_dir, exist_ok=True)
+        
+        with zipfile.ZipFile(zip_path, 'r') as zip_ref:
+            zip_ref.extractall(extract_dir)
+        print(f"Extracted ZIP to: {extract_dir}")
+        
+        # Find the folder containing NIfTI files
+        # (handle case where ZIP has nested folder structure)
+        patient_path = extract_dir
+        for root, dirs, files in os.walk(extract_dir):
+            nifti_files = [f for f in files if f.endswith(('.nii', '.nii.gz'))]
+            if len(nifti_files) >= 4:
+                patient_path = root
+                print(f"Found NIfTI files in: {patient_path}")
+                break
+        
+        # Validate that we have the required files
+        all_files = os.listdir(patient_path)
+        nifti_files = [f for f in all_files if f.endswith(('.nii', '.nii.gz'))]
+        
+        if len(nifti_files) < 4:
             raise HTTPException(
-                status_code=404, 
-                detail=f"Path not found: {patient_path}"
+                status_code=400,
+                detail=f"Expected 4 NIfTI files, found {len(nifti_files)}: {nifti_files}"
             )
+        
+        print(f"Found {len(nifti_files)} NIfTI files: {nifti_files}")
         
         # Get the requested model
         model = app_state["models"][model_name]
@@ -281,6 +326,11 @@ async def predict_tumor_analysis(request: PredictionRequest):
         # Encode image to base64
         img_base64 = base64.b64encode(buf.getvalue()).decode('utf-8')
 
+        # Clean up temporary directory
+        if temp_dir and os.path.exists(temp_dir):
+            shutil.rmtree(temp_dir)
+            print(f"Cleaned up temp directory: {temp_dir}")
+
         return {
             "status": "success",
             "model_used": model_name,
@@ -292,12 +342,18 @@ async def predict_tumor_analysis(request: PredictionRequest):
         }
 
     except FileNotFoundError as e:
+        # Clean up on error
+        if temp_dir and os.path.exists(temp_dir):
+            shutil.rmtree(temp_dir)
         return {
             "status": "error",
             "message": f"File not found: {str(e)}"
         }
     except Exception as e:
         import traceback
+        # Clean up on error
+        if temp_dir and os.path.exists(temp_dir):
+            shutil.rmtree(temp_dir)
         return {
             "status": "error",
             "message": f"An error occurred: {str(e)}",
