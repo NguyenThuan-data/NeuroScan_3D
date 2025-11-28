@@ -133,8 +133,9 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "https://*.streamlit.app",  # Streamlit Cloud apps
-        "http://localhost:8501",    # Local Streamlit development
-        "http://localhost:3000",    # Alternative local port
+        "https://*.hf.space",        # Hugging Face Spaces
+        "http://localhost:8501",     # Local Streamlit development
+        "http://localhost:3000",     # Alternative local port
     ],
     allow_credentials=True,
     allow_methods=["*"],  # Allow all HTTP methods

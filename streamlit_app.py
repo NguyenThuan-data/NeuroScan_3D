@@ -156,23 +156,7 @@ def call_prediction_api(uploaded_file, model_name="default"):
         }
         
         # Send POST request with file upload
-        st.write(f"🔍 DEBUG - Sending request to: {PREDICT_ENDPOINT}")
-        st.write(f"🔍 DEBUG - File name: {uploaded_file.name}")
-        st.write(f"🔍 DEBUG - File size: {len(uploaded_file.getvalue())} bytes")
-        
         response = requests.post(PREDICT_ENDPOINT, files=files, data=data, timeout=300)
-        
-        # DEBUG: Show response details
-        st.write(f"🔍 DEBUG - Response Status Code: {response.status_code}")
-        st.write(f"🔍 DEBUG - Response Headers: {dict(response.headers)}")
-        
-        # Try to show response content
-        try:
-            response_json = response.json()
-            st.write(f"🔍 DEBUG - Response JSON: {response_json}")
-        except:
-            st.write(f"🔍 DEBUG - Response Text (not JSON): {response.text[:1000]}")
-        
         response.raise_for_status()
         return response.json()
         
@@ -355,11 +339,6 @@ def main():
         with st.spinner("🔄 Running prediction... This may take a few moments."):
             result = call_prediction_api(st.session_state.uploaded_zip)
             
-            # DEBUG: Show what we got back
-            st.write("🔍 DEBUG - Result received:")
-            st.write(f"Result type: {type(result)}")
-            st.write(f"Result value: {result}")
-            
             if result and result.get("status") == "success":
                 st.session_state.prediction_result = result
                 st.success(f"✅ Prediction completed! Diagnosis: **{result['diagnosis']}**")
@@ -371,7 +350,6 @@ def main():
                         st.code(result.get("traceback"))
             else:
                 st.error("❌ Failed to get prediction from API")
-                st.write("Expected 'status' field but got:", result)
     
     # Display results
     if st.session_state.prediction_result:

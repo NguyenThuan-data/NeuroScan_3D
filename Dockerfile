@@ -18,13 +18,15 @@ RUN pip install --no-cache-dir -r requirements_api.txt
 COPY tumor_vision_api/ ./tumor_vision_api/
 COPY models/ ./models/
 
-# Expose port
+# Expose port (7860 for Hugging Face Spaces, 8000 for Render)
+# Use environment variable to support both platforms
+EXPOSE 7860
 EXPOSE 8000
 
-# Health check
+# Health check (use PORT env var or default to 7860)
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
-    CMD python -c "import requests; requests.get('http://localhost:8000/health')"
+    CMD python -c "import requests; import os; port = os.getenv('PORT', '7860'); requests.get(f'http://localhost:{port}/health')"
 
-# Run the application
-CMD ["uvicorn", "tumor_vision_api.api_logic:app", "--host", "0.0.0.0", "--port", "8000"]
+# Run the application on port from environment or default to 7860 (HF Spaces default)
+CMD uvicorn tumor_vision_api.api_logic:app --host 0.0.0.0 --port ${PORT:-7860}
 
