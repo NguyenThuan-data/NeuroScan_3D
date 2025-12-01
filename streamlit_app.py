@@ -362,8 +362,11 @@ def main():
         diagnosis = result['diagnosis']
         confidence = result['hgg_probability'] if diagnosis == 'HGG' else result['lgg_probability']
         
-        col1, col2, col3 = st.columns([1, 2, 1])
-        with col2:
+        # Create side-by-side layout: Prediction on left, Bar chart on right
+        col1, col2 = st.columns([1, 1])
+        
+        with col1:
+            st.markdown("### 🎯 Prediction")
             st.markdown(f"""
             <div class='success-box' style='text-align: center;'>
                 <h2 style='margin: 0; color: #155724;'>Diagnosis: {diagnosis}</h2>
@@ -371,10 +374,10 @@ def main():
             </div>
             """, unsafe_allow_html=True)
         
-        # Probability distribution chart
-        st.markdown("### 📈 Probability Distribution")
-        fig = create_probability_chart(result['hgg_probability'], result['lgg_probability'])
-        st.plotly_chart(fig, use_container_width=True)
+        with col2:
+            st.markdown("### 📈 Probability Distribution")
+            fig = create_probability_chart(result['hgg_probability'], result['lgg_probability'])
+            st.plotly_chart(fig, use_container_width=True)
         
         # Segmentation visualization
         st.markdown("---")
